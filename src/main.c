@@ -68,14 +68,14 @@ void initMenu(struct User *u)
         switch (option)
         {
         case 1:
-            loginMenu(u->name, u->password);
+            loginMenu(u->username, u->password);
             if (strcmp(u->password, getPassword(*u)) == 0)
             {
                 printf("\n\nPassword Match!");
             }
             else
             {
-                printf("\nWrong password!! or User Name\n");
+                printf("\nWrong password!! or Username\n");
                 exit(1);
             }
             r = 1;

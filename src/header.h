@@ -12,7 +12,7 @@ struct Record
 {
     int id;
     int userId;
-    char name[100];
+    char username[100];
     char country[100];
     int phone;
     char accountType[10];
@@ -25,13 +25,15 @@ struct Record
 struct User
 {
     int id;
-    char name[50];
+    char username[50];
+    char firstname[50];
+    char lastname[50];
     char password[50];
 };
 
 // authentication functions
 void loginMenu(char a[50], char pass[50]);
-void registerMenu(char a[50], char pass[50]);
+void registerMenu(char a[50], char f_name[50], char l_name[50],char pass[50]);
 const char *getPassword(struct User u);
 
 // system function

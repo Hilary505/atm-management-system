@@ -2,12 +2,12 @@
 
 const char *RECORDS = "./data/records.txt";
 
-int getAccountFromFile(FILE *ptr, char name[50], struct Record *r)
+int getAccountFromFile(FILE *ptr, char username[50], struct Record *r)
 {
     return fscanf(ptr, "%d %d %s %d %d/%d/%d %s %d %lf %s",
                   &r->id,
 		  &r->userId,
-		  name,
+		  username,
                   &r->accountNbr,
                   &r->deposit.month,
                   &r->deposit.day,
@@ -23,7 +23,7 @@ void saveAccountToFile(FILE *ptr, struct User u, struct Record r)
     fprintf(ptr, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n\n",
             r.id,
 	    u.id,
-	    u.name,
+	    u.username,
             r.accountNbr,
             r.deposit.month,
             r.deposit.day,
@@ -114,7 +114,7 @@ noAccount:
 
     while (getAccountFromFile(pf, userName, &cr))
     {
-        if (strcmp(userName, u.name) == 0 && cr.accountNbr == r.accountNbr)
+        if (strcmp(userName, u.username) == 0 && cr.accountNbr == r.accountNbr)
         {
             printf("✖ This Account already exists for this user\n\n");
             goto noAccount;
@@ -143,10 +143,10 @@ void checkAllAccounts(struct User u)
     FILE *pf = fopen(RECORDS, "r");
 
     system("clear");
-    printf("\t\t====== All accounts from user, %s =====\n\n", u.name);
+    printf("\t\t====== All accounts from user, %s =====\n\n", u.username);
     while (getAccountFromFile(pf, userName, &r))
     {
-        if (strcmp(userName, u.name) == 0)
+        if (strcmp(userName, u.username) == 0)
         {
             printf("_____________________\n");
             printf("\nAccount number:%d\nDeposit Date:%d/%d/%d \ncountry:%s \nPhone number:%d \nAmount deposited: $%.2f \nType Of Account:%s\n",

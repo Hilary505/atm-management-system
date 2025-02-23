@@ -8,7 +8,7 @@ void loginMenu(char a[50], char pass[50])
     struct termios oflags, nflags;
 
     system("clear");
-    printf("\n\n\n\t\t\t\t   Bank Management System\n\t\t\t\t\t User Login:");
+    printf("\n\n\n\t\t\t\t Welcome To  Bank Management System\n\t\t\t\t\t User Login\n\t\t\t\t\n Enter your Usename:");
     scanf("%s", a);
 
     // disabling echo
@@ -44,9 +44,9 @@ const char *getPassword(struct User u)
         exit(1);
     }
 
-    while (fscanf(fp, "%s %s", userChecker.name, userChecker.password) != EOF)
+    while (fscanf(fp, "%s %s", userChecker.username, userChecker.password) != EOF)
     {
-        if (strcmp(userChecker.name, u.name) == 0)
+        if (strcmp(userChecker.username, u.username) == 0)
         {
             fclose(fp);
             char *buff = userChecker.password;
