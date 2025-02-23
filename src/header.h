@@ -1,6 +1,10 @@
+#ifndef HEADER_H_
+#define HEADER_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <termios.h> // Include termios.h
 
 struct Date
 {
@@ -26,17 +30,17 @@ struct User
 {
     int id;
     char username[50];
-    char firstname[50];
-    char lastname[50];
     char password[50];
 };
 
 // authentication functions
 void loginMenu(char a[50], char pass[50]);
-void registerMenu(char a[50], char f_name[50], char l_name[50],char pass[50]);
+void registerMenu(struct User *u); // Corrected declaration
 const char *getPassword(struct User u);
 
 // system function
 void createNewAcc(struct User u);
 void mainMenu(struct User u);
 void checkAllAccounts(struct User u);
+
+#endif // HEADER_H_
