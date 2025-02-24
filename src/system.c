@@ -163,3 +163,101 @@ void checkAllAccounts(struct User u)
     fclose(pf);
     success(u);
 }
+
+void updateAccount(struct User u)
+{
+    FILE *pf = fopen(RECORDS, "r+"); // Open the file for reading and writing
+    if (!pf)
+    {
+        printf("Unable to open file!\n");
+        exit(1);
+    }
+
+    char userName[100];
+    struct Record r;
+    int accountNbr;
+    int option;
+    int found = 0;
+
+    system("clear");
+    printf("\n\t\t===== Update Account =====\n");
+
+    // Ask for the account ID to update
+    printf("\nEnter the account ID to update: ");
+    scanf("%d", &accountNbr);
+
+    while (getAccountFromFile(pf, userName, &r))
+    {
+       if (strcmp(userName, u.username) == 0 && r.accountNbr == accountNbr)
+        {
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        printf("\nAccount ID not found for this user!\n");
+        fclose(pf);
+        stayOrReturn(0, mainMenu, u);
+        return;
+    }
+
+    // Ask what the user wants to update
+    printf("\nAccount found!\n");
+    printf("1. Update Country\n");
+    printf("2. Update Phone Number\n");
+    printf("Select an option (1 or 2): ");
+    scanf("%d", &option);
+
+    switch (option)
+    {
+    case 1:
+        printf("\nEnter new country: ");
+        scanf("%s", r.country);
+        break;
+
+    case 2:
+        printf("\nEnter new phone number: ");
+        scanf("%d", &r.phone);
+        break;
+
+    default:
+        printf("Invalid option!\n");
+        fclose(pf);
+        return;
+    }
+
+    // Rewind the file and update the record
+    rewind(pf);
+    FILE *tempFile = fopen("temp_records.txt", "w");
+    if (!tempFile)
+    {
+        printf("Unable to create temporary file!\n");
+        fclose(pf);
+        exit(1);
+    }
+
+    while (getAccountFromFile(pf, userName, &r))
+    {
+        if (strcmp(userName, u.username) == 0 && r.accountNbr == accountNbr)
+        {
+            // Update the record in the temp file
+            saveAccountToFile(tempFile, u, r);
+        }
+        else
+        {
+            // Write the original record to the temp file
+            saveAccountToFile(tempFile, u, r);
+        }
+    }
+
+    fclose(pf);
+    fclose(tempFile);
+
+    // Replace the original file with the updated one
+    remove(RECORDS);
+    rename("temp_records.txt", RECORDS);
+
+    success(u);
+}

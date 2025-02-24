@@ -42,5 +42,6 @@ const char *getPassword(struct User u);
 void createNewAcc(struct User u);
 void mainMenu(struct User u);
 void checkAllAccounts(struct User u);
+void updateAccount(struct User u);
 
 #endif // HEADER_H_

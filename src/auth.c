@@ -8,7 +8,7 @@ void loginMenu(char a[50], char pass[50])
     struct termios oflags, nflags;
 
     system("clear");
-    printf("\n\n\n\t\t\t Welcome To  Bank Management System\n\n\n\t\t\t\tEnter  username to Login:");
+    printf("\n\n\n\t\t\t Welcome To  Bank Management System\n\n\n\t\t\t\tEnter  username to Login: ");
     scanf("%s", a);
 
     // disabling echo
