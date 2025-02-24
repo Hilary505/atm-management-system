@@ -316,7 +316,7 @@ void checkAccount(struct User u)
             {
                 annualInterestRate = 8.0; // 8% annually for 3-year fixed
             }
-            
+
             if (strcmp(r.accountType, "current") == 0)
             {
                 printf("You will not get interests because the account is of type current.\n");
@@ -346,5 +346,122 @@ void checkAccount(struct User u)
     fclose(pf);
 
     // Option to go back to main menu or exit
+    success(u);
+}
+
+// makeTransaction function 
+
+void makeTransaction(struct User u)
+{
+    FILE *pf = fopen(RECORDS, "r+"); // Open the file for reading and writing
+    if (!pf)
+    {
+        printf("Unable to open file!\n");
+        exit(1);
+    }
+
+    char userName[100];
+    struct Record r;
+    int accountId;
+    double transactionAmount;
+    int found = 0;
+    int option;
+
+    system("clear");
+    printf("\t\t===== Make Transaction =====\n");
+
+    // Ask for the account ID to perform the transaction
+    printf("\nEnter the account ID to perform the transaction: ");
+    scanf("%d", &accountId);
+
+    // Read all records into memory
+    struct Record records[100];  // assuming you have a maximum of 100 records
+    int recordCount = 0;
+
+    while (getAccountFromFile(pf, userName, &r))
+    {
+        if (strcmp(userName, u.username) == 0 && r.accountNbr == accountId)
+        {
+            found = 1;
+            // Check if the account type allows transactions
+            if (strcmp(r.accountType, "fixed01") == 0 || strcmp(r.accountType, "fixed02") == 0 || strcmp(r.accountType, "fixed03") == 0)
+            {
+                printf("\n✖ Transactions are not allowed for this account type!\n");
+                fclose(pf);
+                stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
+                return;
+            }
+
+            // Ask the user for the transaction type (deposit or withdraw)
+            printf("\nChoose the transaction type:\n");
+            printf("[1] - Deposit\n");
+            printf("[2] - Withdraw\n");
+            printf("Enter your choice: ");
+            scanf("%d", &option);
+
+            if (option == 1)
+            {
+                // Deposit
+                printf("\nEnter amount to deposit: $");
+                scanf("%lf", &transactionAmount);
+                r.amount += transactionAmount;
+                printf("\n✔ Successfully deposited $%.2f\n", transactionAmount);
+            }
+            else if (option == 2)
+            {
+                // Withdraw
+                printf("\nEnter amount to withdraw: $");
+                scanf("%lf", &transactionAmount);
+
+                if (r.amount - transactionAmount < 0.0)
+                {
+                    printf("\n✖ Insufficient funds! You cannot withdraw more than the available balance.\n");
+                    fclose(pf);
+                    stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
+                    return;
+                }
+                r.amount -= transactionAmount;
+                printf("\n✔ Successfully withdrew $%.2f\n", transactionAmount);
+            }
+            else
+            {
+                printf("\n✖ Invalid transaction type!\n");
+                fclose(pf);
+                stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
+                return;
+            }
+        }
+
+        // Store the record (updated or original)
+        records[recordCount++] = r;
+    }
+
+    if (!found)
+    {
+        printf("\nAccount ID not found for this user!\n");
+        fclose(pf);
+        stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
+        return;
+    }
+
+    fclose(pf);
+
+    // Now, rewrite the entire file with updated records
+    pf = fopen(RECORDS, "w"); // Open the file again for writing
+    if (!pf)
+    {
+        printf("Unable to open file!\n");
+        exit(1);
+    }
+
+    for (int i = 0; i < recordCount; i++)
+    {
+        // Write all records (updated and original) back to the file
+        saveAccountToFile(pf, u, records[i]);
+    }
+
+    fclose(pf);
+
+    // Success
     success(u);
 }
