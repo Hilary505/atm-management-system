@@ -23,18 +23,15 @@ void mainMenu(struct User u)
         break;
     case 2:
         updateAccount(u);
-        // here
         break;
     case 3:
-        // student TODO : add your **Check the details of existing accounts** function
-        // here
+        checkAccount(u);
         break;
     case 4:
         checkAllAccounts(u);
         break;
     case 5:
-        // student TODO : add your **Make transaction** function
-        // here
+        makeTransaction(u);
         break;
     case 6:
         // student TODO : add your **Remove existing account** function
