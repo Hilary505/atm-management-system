@@ -6,8 +6,7 @@ int getAccountFromFile(FILE *ptr, char username[50], struct Record *r)
 {
     return fscanf(ptr, "%d %d %s %d %d/%d/%d %s %d %lf %s",
                   &r->id,
-		  &r->userId,
-		  username,
+		          &r->userId,username,
                   &r->accountNbr,
                   &r->deposit.month,
                   &r->deposit.day,
@@ -22,8 +21,8 @@ void saveAccountToFile(FILE *ptr, struct User u, struct Record r)
 {
     fprintf(ptr, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n\n",
             r.id,
-	    u.id,
-	    u.username,
+	        u.id,
+	        u.username,
             r.accountNbr,
             r.deposit.month,
             r.deposit.day,
@@ -175,7 +174,7 @@ void updateAccount(struct User u)
 
     char userName[100];
     struct Record r;
-    int accountNbr;
+    int accountId;
     int option;
     int found = 0;
 
@@ -184,15 +183,45 @@ void updateAccount(struct User u)
 
     // Ask for the account ID to update
     printf("\nEnter the account ID to update: ");
-    scanf("%d", &accountNbr);
+    scanf("%d", &accountId);
+
+    // Read all records into memory
+    struct Record records[100];  // assuming you have a maximum of 100 records
+    int recordCount = 0;
 
     while (getAccountFromFile(pf, userName, &r))
     {
-       if (strcmp(userName, u.username) == 0 && r.accountNbr == accountNbr)
+        if (strcmp(userName, u.username) == 0 && r.accountNbr == accountId)
         {
             found = 1;
-            break;
+            // Update the record if found
+            printf("\nAccount found!\n");
+            printf("1. Update Country\n");
+            printf("2. Update Phone Number\n");
+            printf("Select an option (1 or 2): ");
+            scanf("%d", &option);
+
+            switch (option)
+            {
+            case 1:
+                printf("\nEnter new country: ");
+                scanf("%s", r.country);
+                break;
+
+            case 2:
+                printf("\nEnter new phone number: ");
+                scanf("%d", &r.phone);
+                break;
+
+            default:
+                printf("Invalid option!\n");
+                fclose(pf);
+                return;
+            }
         }
+
+        // Store the record (updated or original)
+        records[recordCount++] = r;
     }
 
     if (!found)
@@ -203,61 +232,24 @@ void updateAccount(struct User u)
         return;
     }
 
-    // Ask what the user wants to update
-    printf("\nAccount found!\n");
-    printf("1. Update Country\n");
-    printf("2. Update Phone Number\n");
-    printf("Select an option (1 or 2): ");
-    scanf("%d", &option);
+    fclose(pf);
 
-    switch (option)
+    // Now, rewrite the entire file with updated records
+    pf = fopen(RECORDS, "w"); // Open the file again for writing
+    if (!pf)
     {
-    case 1:
-        printf("\nEnter new country: ");
-        scanf("%s", r.country);
-        break;
-
-    case 2:
-        printf("\nEnter new phone number: ");
-        scanf("%d", &r.phone);
-        break;
-
-    default:
-        printf("Invalid option!\n");
-        fclose(pf);
-        return;
-    }
-
-    // Rewind the file and update the record
-    rewind(pf);
-    FILE *tempFile = fopen("temp_records.txt", "w");
-    if (!tempFile)
-    {
-        printf("Unable to create temporary file!\n");
-        fclose(pf);
+        printf("Unable to open file!\n");
         exit(1);
     }
 
-    while (getAccountFromFile(pf, userName, &r))
+    for (int i = 0; i < recordCount; i++)
     {
-        if (strcmp(userName, u.username) == 0 && r.accountNbr == accountNbr)
-        {
-            // Update the record in the temp file
-            saveAccountToFile(tempFile, u, r);
-        }
-        else
-        {
-            // Write the original record to the temp file
-            saveAccountToFile(tempFile, u, r);
-        }
+        // Write all records (updated and original) back to the file
+        saveAccountToFile(pf, u, records[i]);
     }
 
     fclose(pf);
-    fclose(tempFile);
 
-    // Replace the original file with the updated one
-    remove(RECORDS);
-    rename("temp_records.txt", RECORDS);
-
+    // Success
     success(u);
 }
