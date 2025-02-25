@@ -349,8 +349,8 @@ void checkAccount(struct User u)
     success(u);
 }
 
-// makeTransaction function 
 
+// makeTransaction function 
 void makeTransaction(struct User u)
 {
     FILE *pf = fopen(RECORDS, "r+"); // Open the file for reading and writing
@@ -463,5 +463,77 @@ void makeTransaction(struct User u)
     fclose(pf);
 
     // Success
+    success(u);
+}
+
+
+// removeAccount function
+void removeAccount(struct User u)
+{
+    FILE *pf = fopen(RECORDS, "r"); // Open file for reading
+    FILE *tempFile = fopen("./data/records.txt", "w"); // Create a temporary file to store the remaining records
+    if (!pf || !tempFile)
+    {
+        printf("Unable to open file!\n");
+        exit(1);
+    }
+
+    char userName[100];
+    struct Record r;
+    int accountId;
+    int found = 0;
+
+    system("clear");
+    printf("\t\t===== Remove Account =====\n");
+
+    // Ask the user for the account number to remove
+    printf("\nEnter the account number to remove: ");
+    scanf("%d", &accountId);
+
+    while (getAccountFromFile(pf, userName, &r))
+    {
+        // If account found for the user, skip it
+        if (strcmp(userName, u.username) == 0 && r.accountNbr == accountId)
+        {
+            found = 1;
+            printf("\n✔ Account found and will be removed!\n");
+            continue;  // Skip writing this account to the new file
+        }
+
+        // Write all other records to the temporary file
+        saveAccountToFile(tempFile, u, r);
+    }
+
+    if (!found)
+    {
+        printf("\n✖ Account ID not found for this user!\n");
+        fclose(pf);
+        fclose(tempFile);
+        stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
+        return;
+    }
+
+    fclose(pf);
+    fclose(tempFile);
+
+    // Delete the old records file and rename the temporary file
+    if (remove(RECORDS) == 0)
+    {
+        if (rename("./data/records.txt", RECORDS) == 0)
+        {
+            printf("\n✔ Account removed successfully!\n");
+        }
+        else
+        {
+            printf("\n✖ Error renaming temporary file.\n");
+            exit(1);
+        }
+    }
+    else
+    {
+        printf("\n✖ Error deleting old file.\n");
+        exit(1);
+    }
+
     success(u);
 }
