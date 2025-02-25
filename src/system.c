@@ -538,8 +538,10 @@ void removeAccount(struct User u)
     success(u);
 }
 
-// transfer account function
 
+
+
+// transfer account function
 void transferAccount(struct User u)
 {
     FILE *pf = fopen(RECORDS, "r+"); // Open file for reading and writing
@@ -572,6 +574,7 @@ void transferAccount(struct User u)
 
     while (getAccountFromFile(pf, userName, &r))
     {
+        // Check if the current record belongs to the logged-in user and the account ID matches
         if (strcmp(userName, u.username) == 0 && r.accountNbr == accountId)
         {
             found = 1;
@@ -580,14 +583,14 @@ void transferAccount(struct User u)
             printf("Transferring ownership to %s...\n", newOwner);
 
             // Change the ownership (username) of the account
-            strcpy(userName, newOwner); // Transfer the ownership to the new user
+            strcpy(r.username, newOwner); // Transfer the ownership to the new user
 
             // Store the updated record
-            records[recordCount++] = r;
+            records[recordCount++] = r; // Add updated record
         }
         else
         {
-            // Store the record as is (for non-matching accounts)
+            // Store the record as is (non-matching accounts remain unchanged)
             records[recordCount++] = r;
         }
     }
