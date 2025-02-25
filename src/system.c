@@ -537,3 +537,87 @@ void removeAccount(struct User u)
 
     success(u);
 }
+
+// transfer account function
+
+void transferAccount(struct User u)
+{
+    FILE *pf = fopen(RECORDS, "r+"); // Open file for reading and writing
+    if (!pf)
+    {
+        printf("Unable to open file!\n");
+        exit(1);
+    }
+
+    char userName[100];
+    struct Record r;
+    int accountId;
+    char newOwner[50];
+    int found = 0;
+
+    system("clear");
+    printf("\t\t===== Transfer Ownership =====\n");
+
+    // Ask for the account ID to transfer ownership
+    printf("\nEnter the account ID to transfer ownership: ");
+    scanf("%d", &accountId);
+
+    // Ask for the new owner's username
+    printf("\nEnter the new owner's username: ");
+    scanf("%s", newOwner);
+
+    // Read all records into memory
+    struct Record records[100];  // assuming a maximum of 100 records
+    int recordCount = 0;
+
+    while (getAccountFromFile(pf, userName, &r))
+    {
+        if (strcmp(userName, u.username) == 0 && r.accountNbr == accountId)
+        {
+            found = 1;
+            // Update the record with the new owner's username
+            printf("\nAccount found!\n");
+            printf("Transferring ownership to %s...\n", newOwner);
+
+            // Change the ownership (username) of the account
+            strcpy(userName, newOwner); // Transfer the ownership to the new user
+
+            // Store the updated record
+            records[recordCount++] = r;
+        }
+        else
+        {
+            // Store the record as is (for non-matching accounts)
+            records[recordCount++] = r;
+        }
+    }
+
+    if (!found)
+    {
+        printf("\nAccount ID not found for this user!\n");
+        fclose(pf);
+        stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
+        return;
+    }
+
+    fclose(pf);
+
+    // Now, rewrite the entire file with updated records
+    pf = fopen(RECORDS, "w"); // Open the file again for writing
+    if (!pf)
+    {
+        printf("Unable to open file!\n");
+        exit(1);
+    }
+
+    for (int i = 0; i < recordCount; i++)
+    {
+        // Write all records (updated and original) back to the file
+        saveAccountToFile(pf, u, records[i]);
+    }
+
+    fclose(pf);
+
+    // Success message
+    success(u);
+}

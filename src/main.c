@@ -37,8 +37,7 @@ void mainMenu(struct User u)
         removeAccount(u);
         break;
     case 7:
-        // student TODO : add your **Transfer owner** function
-        // here
+        transferAccount(u);
         break;
     case 8:
         exit(1);
@@ -77,8 +76,7 @@ void initMenu(struct User *u)
             r = 1;
             break;
         case 2:
-           registerMenu(u); //pass the user struct
-            // here
+           registerMenu(u); 
             r = 1;
             break;
         case 3:
