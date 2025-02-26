@@ -163,95 +163,91 @@ void checkAllAccounts(struct User u)
     success(u);
 }
 
-// updateAccount function
-void updateAccount(struct User u)
-{
-    FILE *pf = fopen(RECORDS, "r+"); // Open the file for reading and writing
-    if (!pf)
-    {
+// updateAccount function 
+void updateAccount(struct User u) {
+    FILE *pf = fopen(RECORDS, "r");
+    if (!pf) {
         printf("Unable to open file!\n");
         exit(1);
     }
 
-    char userName[100];
-    struct Record r;
+    // Store both usernames and records
+    struct {
+        char username[100];
+        struct Record record;
+    } entries[100];
+    
+    int entryCount = 0;
     int accountId;
-    int option;
     int found = 0;
 
     system("clear");
     printf("\n\t\t===== Update Account =====\n");
-
-    // Ask for the account ID to update
-    printf("\nEnter the account ID to update: ");
+    printf("\nEnter the account number to update: ");
     scanf("%d", &accountId);
 
-    // Read all records into memory
-    struct Record records[100];  // assuming you have a maximum of 100 records
-    int recordCount = 0;
+    // Read all records with their usernames
+    char currentUser[100];
+    struct Record r;
+    while (getAccountFromFile(pf, currentUser, &r)) {
+        strcpy(entries[entryCount].username, currentUser);
+        entries[entryCount].record = r;
+        entryCount++;
+    }
+    fclose(pf);
 
-    while (getAccountFromFile(pf, userName, &r))
-    {
-        if (strcmp(userName, u.username) == 0 && r.accountNbr == accountId)
-        {
+    // Find and update the correct record
+    for (int i = 0; i < entryCount; i++) {
+        if (entries[i].record.accountNbr == accountId && 
+            strcmp(entries[i].username, u.username) == 0) {
             found = 1;
-            // Update the record if found
             printf("\nAccount found!\n");
-            printf("1. Update Country\n");
-            printf("2. Update Phone Number\n");
-            printf("Select an option (1 or 2): ");
+            
+            int option;
+            printf("1. Update Country\n2. Update Phone Number\nSelect: ");
             scanf("%d", &option);
 
-            switch (option)
-            {
-            case 1:
-                printf("\nEnter new country: ");
-                scanf("%s", r.country);
-                break;
-
-            case 2:
-                printf("\nEnter new phone number: ");
-                scanf("%d", &r.phone);
-                break;
-
-            default:
-                printf("Invalid option!\n");
-                fclose(pf);
-                return;
+            switch (option) {
+                case 1:
+                    printf("Enter new country: ");
+                    scanf("%s", entries[i].record.country); // Corrected typo: country -> country
+                    break;
+                case 2:
+                    printf("Enter new phone number: ");
+                    scanf("%d", &entries[i].record.phone);
+                    break;
+                default:
+                    printf("Invalid option!\n");
+                    return;
             }
+            break;
         }
-
-        // Store the record (updated or original)
-        records[recordCount++] = r;
     }
 
-    if (!found)
-    {
-        printf("\nAccount ID not found for this user!\n");
-        fclose(pf);
+    if (!found) {
+        printf("\nAccount number not found for this user!\n");
         stayOrReturn(0, mainMenu, u);
         return;
     }
 
-    fclose(pf);
-
-    // Now, rewrite the entire file with updated records
-    pf = fopen(RECORDS, "w"); // Open the file again for writing
-    if (!pf)
-    {
+    // Rewrite all records with original usernames and user IDs
+    pf = fopen(RECORDS, "w");
+    if (!pf) {
         printf("Unable to open file!\n");
         exit(1);
     }
 
-    for (int i = 0; i < recordCount; i++)
-    {
-        // Write all records (updated and original) back to the file
-        saveAccountToFile(pf, u, records[i]);
+    for (int i = 0; i < entryCount; i++) {
+        // Create a temporary User struct with stored username and user ID from the record
+        struct User tmpUser;
+        tmpUser.id = entries[i].record.userId; // Retrieve user ID from the record
+        strcpy(tmpUser.username, entries[i].username); // Use the stored username
+
+        // Save the record with the correct user info
+        saveAccountToFile(pf, tmpUser, entries[i].record);
     }
 
     fclose(pf);
-
-    // Success
     success(u);
 }
 
