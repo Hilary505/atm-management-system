@@ -8,7 +8,7 @@ void loginMenu(char a[50], char pass[50])
     struct termios oflags, nflags;
 
     system("clear");
-    printf("\n\n\n\t\t\t\t   Bank Management System\n\t\t\t\t\t User Login:");
+    printf("\n\n\n\t\t\t\t   Bank Management System\n\n\t\t\t\t\t User Login: ");
     scanf("%s", a);
 
     // disabling echo
@@ -22,7 +22,7 @@ void loginMenu(char a[50], char pass[50])
         perror("tcsetattr");
         return exit(1);
     }
-    printf("\n\n\n\n\n\t\t\t\tEnter the password to login:");
+    printf("\n\n\n\n\t\t\tEnter the password to login: ");
     scanf("%s", pass);
 
     // restore terminal
