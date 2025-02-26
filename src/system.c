@@ -5,31 +5,14 @@ const char *RECORDS = "./data/records.txt";
 int getAccountFromFile(FILE *ptr, char username[50], struct Record *r)
 {
     return fscanf(ptr, "%d %d %s %d %d/%d/%d %s %d %lf %s",
-                  &r->id,
-		          &r->userId,username,
-                  &r->accountNbr,
-                  &r->deposit.month,
-                  &r->deposit.day,
-                  &r->deposit.year,
-                  r->country,
-                  &r->phone,
-                  &r->amount,
+                  &r->id, &r->userId,username, &r->accountNbr, &r->deposit.month, &r->deposit.day, &r->deposit.year, r->country,  &r->phone,  &r->amount,
                   r->accountType) != EOF;
 }
 
 void saveAccountToFile(FILE *ptr, struct User u, struct Record r)
 {
     fprintf(ptr, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n\n",
-            r.id,
-	        u.id,
-	        u.username,
-            r.accountNbr,
-            r.deposit.month,
-            r.deposit.day,
-            r.deposit.year,
-            r.country,
-            r.phone,
-            r.amount,
+            r.id, u.id, u.username, r.accountNbr, r.deposit.month, r.deposit.day, r.deposit.year, r.country, r.phone, r.amount,
             r.accountType);
 }
 
@@ -163,7 +146,7 @@ void checkAllAccounts(struct User u)
     success(u);
 }
 
-// updateAccount function 
+//updateAccount function 
 void updateAccount(struct User u) {
     FILE *pf = fopen(RECORDS, "r");
     if (!pf) {
@@ -366,33 +349,42 @@ void makeTransaction(struct User u)
     system("clear");
     printf("\t\t===== Make Transaction =====\n");
 
-    // Ask for the account ID to perform the transaction
     printf("\nEnter the account ID to perform the transaction: ");
     scanf("%d", &accountId);
 
     // Read all records into memory
-    struct Record records[100];  // assuming you have a maximum of 100 records
-    int recordCount = 0;
+    struct {
+        char username[100];
+        struct Record record;
+    } entries[100];  // Store both usernames and records
+    int entryCount = 0;
 
     while (getAccountFromFile(pf, userName, &r))
     {
-        if (strcmp(userName, u.username) == 0 && r.accountNbr == accountId)
+        strcpy(entries[entryCount].username, userName); 
+        entries[entryCount].record = r; 
+        entryCount++;
+    }
+    fclose(pf);
+
+    // Find and update the correct record
+    for (int i = 0; i < entryCount; i++)
+    {
+        if (strcmp(entries[i].username, u.username) == 0 && entries[i].record.accountNbr == accountId)
         {
             found = 1;
-            // Check if the account type allows transactions
-            if (strcmp(r.accountType, "fixed01") == 0 || strcmp(r.accountType, "fixed02") == 0 || strcmp(r.accountType, "fixed03") == 0)
+            if (strcmp(entries[i].record.accountType, "fixed01") == 0 || strcmp(entries[i].record.accountType, "fixed02") == 0 || strcmp(entries[i].record.accountType, "fixed03") == 0)
             {
                 printf("\n✖ Transactions are not allowed for this account type!\n");
-                fclose(pf);
-                stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
+                stayOrReturn(0, mainMenu, u); 
                 return;
             }
 
             // Ask the user for the transaction type (deposit or withdraw)
             printf("\nChoose the transaction type:\n");
-            printf("[1] - Deposit\n");
-            printf("[2] - Withdraw\n");
-            printf("Enter your choice: ");
+            printf("1 - Deposit\n");
+            printf("2 - Withdraw\n");
+            printf("\n\nEnter your choice: ");
             scanf("%d", &option);
 
             if (option == 1)
@@ -400,7 +392,7 @@ void makeTransaction(struct User u)
                 // Deposit
                 printf("\nEnter amount to deposit: $");
                 scanf("%lf", &transactionAmount);
-                r.amount += transactionAmount;
+                entries[i].record.amount += transactionAmount;
                 printf("\n✔ Successfully deposited $%.2f\n", transactionAmount);
             }
             else if (option == 2)
@@ -409,65 +401,57 @@ void makeTransaction(struct User u)
                 printf("\nEnter amount to withdraw: $");
                 scanf("%lf", &transactionAmount);
 
-                if (r.amount - transactionAmount < 0.0)
+                if (entries[i].record.amount - transactionAmount < 0.0)
                 {
                     printf("\n✖ Insufficient funds! You cannot withdraw more than the available balance.\n");
-                    fclose(pf);
                     stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
                     return;
                 }
-                r.amount -= transactionAmount;
+                entries[i].record.amount -= transactionAmount;
                 printf("\n✔ Successfully withdrew $%.2f\n", transactionAmount);
             }
             else
             {
                 printf("\n✖ Invalid transaction type!\n");
-                fclose(pf);
                 stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
                 return;
             }
+            break;
         }
-
-        // Store the record (updated or original)
-        records[recordCount++] = r;
     }
-
     if (!found)
     {
         printf("\nAccount ID not found for this user!\n");
-        fclose(pf);
-        stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
+        stayOrReturn(0, mainMenu, u); 
         return;
     }
 
-    fclose(pf);
-
     // Now, rewrite the entire file with updated records
-    pf = fopen(RECORDS, "w"); // Open the file again for writing
+    pf = fopen(RECORDS, "w");
     if (!pf)
     {
         printf("Unable to open file!\n");
         exit(1);
     }
 
-    for (int i = 0; i < recordCount; i++)
+    for (int i = 0; i < entryCount; i++)
     {
-        // Write all records (updated and original) back to the file
-        saveAccountToFile(pf, u, records[i]);
-    }
+        struct User tmpUser;
+        tmpUser.id = entries[i].record.userId; 
+        strcpy(tmpUser.username, entries[i].username);
 
+        // Save the record with the correct user info
+        saveAccountToFile(pf, tmpUser, entries[i].record);
+    }
     fclose(pf);
 
-    // Success
     success(u);
 }
 
-
-// removeAccount function
 void removeAccount(struct User u)
 {
-    FILE *pf = fopen(RECORDS, "r"); // Open file for reading
-    FILE *tempFile = fopen("./data/records.txt", "w"); // Create a temporary file to store the remaining records
+    FILE *pf = fopen(RECORDS, "r"); 
+    FILE *tempFile = fopen("./data/temp_records.txt", "w"); // Use a temporary file
     if (!pf || !tempFile)
     {
         printf("Unable to open file!\n");
@@ -493,29 +477,32 @@ void removeAccount(struct User u)
         {
             found = 1;
             printf("\n✔ Account found and will be removed!\n");
-            continue;  // Skip writing this account to the new file
+            continue;  
         }
 
-        // Write all other records to the temporary file
-        saveAccountToFile(tempFile, u, r);
-    }
+        struct User tmpUser;
+        tmpUser.id = r.userId; 
+        strcpy(tmpUser.username, userName); 
 
-    if (!found)
-    {
-        printf("\n✖ Account ID not found for this user!\n");
-        fclose(pf);
-        fclose(tempFile);
-        stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
-        return;
+        // Write all other records to the temporary file
+        saveAccountToFile(tempFile, tmpUser, r);
     }
 
     fclose(pf);
     fclose(tempFile);
 
+    if (!found)
+    {
+        printf("\n✖ Account ID not found for this user!\n");
+        remove("./data/temp_records.txt"); 
+        stayOrReturn(0, mainMenu, u);
+        return;
+    }
+
     // Delete the old records file and rename the temporary file
     if (remove(RECORDS) == 0)
     {
-        if (rename("./data/records.txt", RECORDS) == 0)
+        if (rename("./data/temp_records.txt", RECORDS) == 0)
         {
             printf("\n✔ Account removed successfully!\n");
         }
@@ -534,13 +521,10 @@ void removeAccount(struct User u)
     success(u);
 }
 
-
-
-
-// transfer account function
+// transferAccount function
 void transferAccount(struct User u)
 {
-    FILE *pf = fopen(RECORDS, "r+"); // Open file for reading and writing
+    FILE *pf = fopen(RECORDS, "r+"); 
     if (!pf)
     {
         printf("Unable to open file!\n");
@@ -565,13 +549,24 @@ void transferAccount(struct User u)
     scanf("%s", newOwner);
 
     // Read all records into memory
-    struct Record records[100];  // assuming a maximum of 100 records
-    int recordCount = 0;
+    struct {
+        char username[100];
+        struct Record record;
+    } entries[100];  // Store both usernames and records
+    int entryCount = 0;
 
     while (getAccountFromFile(pf, userName, &r))
     {
-        // Check if the current record belongs to the logged-in user and the account ID matches
-        if (strcmp(userName, u.username) == 0 && r.accountNbr == accountId)
+        strcpy(entries[entryCount].username, userName); // Store the username
+        entries[entryCount].record = r; // Store the record
+        entryCount++;
+    }
+    fclose(pf);
+
+    // Find and update the correct record
+    for (int i = 0; i < entryCount; i++)
+    {
+        if (strcmp(entries[i].username, u.username) == 0 && entries[i].record.accountNbr == accountId)
         {
             found = 1;
             // Update the record with the new owner's username
@@ -579,27 +574,17 @@ void transferAccount(struct User u)
             printf("Transferring ownership to %s...\n", newOwner);
 
             // Change the ownership (username) of the account
-            strcpy(r.username, newOwner); // Transfer the ownership to the new user
-
-            // Store the updated record
-            records[recordCount++] = r; // Add updated record
-        }
-        else
-        {
-            // Store the record as is (non-matching accounts remain unchanged)
-            records[recordCount++] = r;
+            strcpy(entries[i].username, newOwner); // Transfer the ownership to the new user
+            break;
         }
     }
 
     if (!found)
     {
         printf("\nAccount ID not found for this user!\n");
-        fclose(pf);
         stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
         return;
     }
-
-    fclose(pf);
 
     // Now, rewrite the entire file with updated records
     pf = fopen(RECORDS, "w"); // Open the file again for writing
@@ -609,10 +594,15 @@ void transferAccount(struct User u)
         exit(1);
     }
 
-    for (int i = 0; i < recordCount; i++)
+    for (int i = 0; i < entryCount; i++)
     {
-        // Write all records (updated and original) back to the file
-        saveAccountToFile(pf, u, records[i]);
+        // Create a temporary User struct with stored username and user ID from the record
+        struct User tmpUser;
+        tmpUser.id = entries[i].record.userId; // Retrieve user ID from the record
+        strcpy(tmpUser.username, entries[i].username); // Use the stored username
+
+        // Save the record with the correct user info
+        saveAccountToFile(pf, tmpUser, entries[i].record);
     }
 
     fclose(pf);
