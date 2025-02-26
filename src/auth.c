@@ -2,6 +2,7 @@
 #include "header.h"
 
 char *USERS = "./data/users.txt";
+int id[10];
 
 void loginMenu(char a[50], char pass[50])
 {
@@ -44,11 +45,12 @@ const char *getPassword(struct User u)
         exit(1);
     }
 
-    while (fscanf(fp, "%s %s", userChecker.username, userChecker.password) != EOF)
+    while (fscanf(fp, "%d  %s %s",id, userChecker.username, userChecker.password) != EOF)
     {
         if (strcmp(userChecker.username, u.username) == 0)
         {
             fclose(fp);
+            u.id = atoi(id);
             char *buff = userChecker.password;
             return buff;
         }
