@@ -466,3 +466,78 @@ void makeTransaction(struct User u)
 
     success(u);
 }
+
+// removeAccount function
+void removeAccount(struct User u)
+{
+    FILE *pf = fopen(RECORDS, "r"); 
+    FILE *tempFile = fopen("./data/temp_records.txt", "w"); // Use a temporary file
+    if (!pf || !tempFile)
+    {
+        printf("Unable to open file!\n");
+        exit(1);
+    }
+
+    char userName[100];
+    struct Record r;
+    int accountId;
+    int found = 0;
+
+    system("clear");
+    printf("\t\t===== Remove Account =====\n");
+
+    // Ask the user for the account number to remove
+    printf("\nEnter the account number to remove: ");
+    scanf("%d", &accountId);
+
+    while (getAccountFromFile(pf, userName, &r))
+    {
+        // If account found for the user, skip it
+        if (strcmp(userName, u.name) == 0 && r.accountNbr == accountId)
+        {
+            found = 1;
+            printf("\n✔ Account found and will be removed!\n");
+            continue;  
+        }
+
+        struct User tmpUser;
+        tmpUser.id = r.userId; 
+        strcpy(tmpUser.name, userName); 
+
+        // Write all other records to the temporary file
+        saveAccountToFile(tempFile, tmpUser, r);
+    }
+
+    fclose(pf);
+    fclose(tempFile);
+
+    if (!found)
+    {
+        printf("\n✖ Account ID not found for this user!\n");
+        remove("./data/temp_records.txt"); 
+        stayOrReturn(0, mainMenu, u);
+        return;
+    }
+
+    // Delete the old records file and rename the temporary file
+    if (remove(RECORDS) == 0)
+    {
+        if (rename("./data/temp_records.txt", RECORDS) == 0)
+        {
+            printf("\n✔ Account removed successfully!\n");
+        }
+        else
+        {
+            printf("\n✖ Error renaming temporary file.\n");
+            exit(1);
+        }
+    }
+    else
+    {
+        printf("\n✖ Error deleting old file.\n");
+        exit(1);
+    }
+
+    success(u);
+}
+
