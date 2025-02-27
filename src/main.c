@@ -31,13 +31,12 @@ void mainMenu(struct User u)
         checkAllAccounts(u);
         break;
     case 5:
-         makeTransaction(u);
+        makeTransaction(u);
     case 6:
-         removeAccount(u);
+        removeAccount(u);
         break;
     case 7:
-        // student TODO : add your **Transfer owner** function
-        // here
+        transferAccount(u);
         break;
     case 8:
         exit(1);
