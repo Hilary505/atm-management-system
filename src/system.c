@@ -279,7 +279,7 @@ void checkAccount(struct User u)
     // Read the records and search for the account
     while (getAccountFromFile(pf, userName, &r))
     {
-        if (strcmp(userName, u.username) == 0 && r.accountNbr == accountId)
+        if (strcmp(userName, u.name) == 0 && r.accountNbr == accountId)
         {
             found = 1;
             // Display account details
@@ -345,5 +345,124 @@ void checkAccount(struct User u)
     fclose(pf);
 
     // Option to go back to main menu or exit
+    success(u);
+}
+
+// makeTransaction function 
+void makeTransaction(struct User u)
+{
+    FILE *pf = fopen(RECORDS, "r+"); // Open the file for reading and writing
+    if (!pf)
+    {
+        printf("Unable to open file!\n");
+        exit(1);
+    }
+
+    char userName[100];
+    struct Record r;
+    int accountId;
+    double transactionAmount;
+    int found = 0;
+    int option;
+
+    system("clear");
+    printf("\t\t===== Make Transaction =====\n");
+
+    printf("\nEnter the account ID to perform the transaction: ");
+    scanf("%d", &accountId);
+
+    // Read all records into memory
+    struct {
+        char username[100];
+        struct Record record;
+    } entries[100];  // Store both usernames and records
+    int entryCount = 0;
+
+    while (getAccountFromFile(pf, userName, &r))
+    {
+        strcpy(entries[entryCount].username, userName); 
+        entries[entryCount].record = r; 
+        entryCount++;
+    }
+    fclose(pf);
+
+    // Find and update the correct record
+    for (int i = 0; i < entryCount; i++)
+    {
+        if (strcmp(entries[i].username, u.username) == 0 && entries[i].record.accountNbr == accountId)
+        {
+            found = 1;
+            if (strcmp(entries[i].record.accountType, "fixed01") == 0 || strcmp(entries[i].record.accountType, "fixed02") == 0 || strcmp(entries[i].record.accountType, "fixed03") == 0)
+            {
+                printf("\n✖ Transactions are not allowed for this account type!\n");
+                stayOrReturn(0, mainMenu, u); 
+                return;
+            }
+
+            // Ask the user for the transaction type (deposit or withdraw)
+            printf("\nChoose the transaction type:\n");
+            printf("1 - Deposit\n");
+            printf("2 - Withdraw\n");
+            printf("\n\nEnter your choice: ");
+            scanf("%d", &option);
+
+            if (option == 1)
+            {
+                // Deposit
+                printf("\nEnter amount to deposit: $");
+                scanf("%lf", &transactionAmount);
+                entries[i].record.amount += transactionAmount;
+                printf("\n✔ Successfully deposited $%.2f\n", transactionAmount);
+            }
+            else if (option == 2)
+            {
+                // Withdraw
+                printf("\nEnter amount to withdraw: $");
+                scanf("%lf", &transactionAmount);
+
+                if (entries[i].record.amount - transactionAmount < 0.0)
+                {
+                    printf("\n✖ Insufficient funds! You cannot withdraw more than the available balance.\n");
+                    stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
+                    return;
+                }
+                entries[i].record.amount -= transactionAmount;
+                printf("\n✔ Successfully withdrew $%.2f\n", transactionAmount);
+            }
+            else
+            {
+                printf("\n✖ Invalid transaction type!\n");
+                stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
+                return;
+            }
+            break;
+        }
+    }
+    if (!found)
+    {
+        printf("\nAccount ID not found for this user!\n");
+        stayOrReturn(0, mainMenu, u); 
+        return;
+    }
+
+    // Now, rewrite the entire file with updated records
+    pf = fopen(RECORDS, "w");
+    if (!pf)
+    {
+        printf("Unable to open file!\n");
+        exit(1);
+    }
+
+    for (int i = 0; i < entryCount; i++)
+    {
+        struct User tmpUser;
+        tmpUser.id = entries[i].record.userId; 
+        strcpy(tmpUser.username, entries[i].username);
+
+        // Save the record with the correct user info
+        saveAccountToFile(pf, tmpUser, entries[i].record);
+    }
+    fclose(pf);
+
     success(u);
 }
