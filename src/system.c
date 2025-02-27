@@ -106,9 +106,29 @@ void createNewAcc(struct User u)
 noAccount:
     system("clear");
     printf("\t\t\t===== New record =====\n");
-
+while(1)
+{
     printf("\nEnter today's date(mm/dd/yyyy):");
     scanf("%d/%d/%d", &r.deposit.month, &r.deposit.day, &r.deposit.year);
+    
+     if (r.deposit.month < 1 || r.deposit.month > 12)
+        {
+            printf("\nInvalid month! Please enter a month between 1 and 12.\n");
+            continue;
+        }
+
+        if (r.deposit.day < 1 || r.deposit.day > 31)
+        {
+            printf("\nInvalid day! Please enter a day between 1 and 31.\n");
+            continue;
+        }
+         if ( r.deposit.year > 2025)
+        {
+            printf("\nInvalid year! Please enter the correct year\n");
+            continue;
+        }
+        break;
+}
     printf("\nEnter the account number:");
     scanf("%d", &r.accountNbr);
 
