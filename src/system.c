@@ -541,3 +541,84 @@ void removeAccount(struct User u)
     success(u);
 }
 
+// transferAccount function
+void transferAccount(struct User u)
+{
+    FILE *pf = fopen(RECORDS, "r+"); 
+    if (!pf)
+    {
+        printf("Unable to open file!\n");
+        exit(1);
+    }
+
+    char userName[100];
+    struct Record r;
+    int accountId;
+    char newOwner[50];
+    int found = 0;
+
+    system("clear");
+    printf("\t\t===== Transfer Ownership =====\n");
+
+    // Ask for the account ID to transfer ownership
+    printf("\nEnter the accountId to transfer ownership: ");
+    scanf("%d", &accountId);
+
+    printf("\nEnter the new owner's name: ");
+    scanf("%s", newOwner);
+
+    // Read all records into memory
+    struct {
+        char name[100];
+        struct Record record;
+    } entries[100];  // Store both names and records
+    int entryCount = 0;
+
+    while (getAccountFromFile(pf, userName, &r))
+    {
+        strcpy(entries[entryCount].name, userName); // Store the name
+        entries[entryCount].record = r; // Store the record
+        entryCount++;
+    }
+    fclose(pf);
+
+    // Find and update the correct record
+    for (int i = 0; i < entryCount; i++)
+    {
+        if (strcmp(entries[i].name, u.name) == 0 && entries[i].record.accountNbr == accountId)
+        {
+            found = 1;
+            printf("\nAccount found!\n");
+            printf("Transferring ownership to %s\n", newOwner);
+
+            strcpy(entries[i].name, newOwner);
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        printf("\nAccount ID not found for this user!\n");
+        stayOrReturn(0, mainMenu, u); 
+        return;
+    }
+
+    pf = fopen(RECORDS, "w");
+    if (!pf)
+    {
+        printf("Unable to open file!\n");
+        exit(1);
+    }
+
+    for (int i = 0; i < entryCount; i++)
+    {
+        struct User tmpUser;
+        tmpUser.id = entries[i].record.userId; 
+        strcpy(tmpUser.name, entries[i].name); 
+
+        // Save the record with the correct user info
+        saveAccountToFile(pf, tmpUser, entries[i].record);
+    }
+    fclose(pf);
+    success(u);
+}
