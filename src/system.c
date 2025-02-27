@@ -253,3 +253,97 @@ void updateAccount(struct User u) {
     fclose(pf);
     success(u);
 }
+
+// checkAccount function 
+void checkAccount(struct User u)
+{
+    FILE *pf = fopen(RECORDS, "r");
+    if (!pf)
+    {
+        printf("Unable to open file!\n");
+        exit(1);
+    }
+
+    char userName[100];
+    struct Record r;
+    int accountId;
+    int found = 0;
+
+    system("clear");
+    printf("\t\t===== Check Account Details =====\n");
+
+    // Ask for the account ID
+    printf("\nEnter the account ID you want to check: ");
+    scanf("%d", &accountId);
+
+    // Read the records and search for the account
+    while (getAccountFromFile(pf, userName, &r))
+    {
+        if (strcmp(userName, u.username) == 0 && r.accountNbr == accountId)
+        {
+            found = 1;
+            // Display account details
+            printf("\nAccount found!\n");
+            printf("Account number: %d\n", r.accountNbr);
+            printf("Deposit Date: %d/%d/%d\n", r.deposit.month, r.deposit.day, r.deposit.year);
+            printf("Country: %s\n", r.country);
+            printf("Phone number: %d\n", r.phone);
+            printf("Amount deposited: $%.2f\n", r.amount);
+            printf("Type of Account: %s\n", r.accountType);
+
+            // Calculate and display the interest based on the account type
+            double monthlyInterest = 0.0;
+            double annualInterestRate = 0.0;
+
+            // Interest rates for different account types
+            if (strcmp(r.accountType, "saving") == 0)
+            {
+                annualInterestRate = 7.0; // 7% annually for savings
+            }
+
+            if (strcmp(r.accountType, "fixed01") == 0)
+            {
+                annualInterestRate = 4.0; // 4% annually for 1-year fixed
+            }
+
+            if (strcmp(r.accountType, "fixed02") == 0)
+            {
+                annualInterestRate = 5.0; // 5% annually for 2-year fixed
+            }
+
+            if (strcmp(r.accountType, "fixed03") == 0)
+            {
+                annualInterestRate = 8.0; // 8% annually for 3-year fixed
+            }
+
+            if (strcmp(r.accountType, "current") == 0)
+            {
+                printf("You will not get interests because the account is of type current.\n");
+                fclose(pf);
+                success(u);
+                return;
+            }
+
+            // If interest is applicable, calculate monthly interest
+            if (annualInterestRate > 0)
+            {
+                monthlyInterest = (r.amount * annualInterestRate / 100) / 12; // Monthly interest
+                printf("You will get $%.2f as interest on day %d of every month.\n", monthlyInterest, r.deposit.day);
+            }
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        printf("\nAccount ID not found for this user!\n");
+        fclose(pf);
+        stayOrReturn(0, mainMenu, u); // Let the user choose to return or exit
+        return;
+    }
+
+    fclose(pf);
+
+    // Option to go back to main menu or exit
+    success(u);
+}
