@@ -373,14 +373,14 @@ void makeTransaction(struct User u)
 
     // Read all records into memory
     struct {
-        char username[100];
+        char name[100];
         struct Record record;
     } entries[100];  // Store both usernames and records
     int entryCount = 0;
 
     while (getAccountFromFile(pf, userName, &r))
     {
-        strcpy(entries[entryCount].username, userName); 
+        strcpy(entries[entryCount].name, userName); 
         entries[entryCount].record = r; 
         entryCount++;
     }
@@ -389,7 +389,7 @@ void makeTransaction(struct User u)
     // Find and update the correct record
     for (int i = 0; i < entryCount; i++)
     {
-        if (strcmp(entries[i].username, u.username) == 0 && entries[i].record.accountNbr == accountId)
+        if (strcmp(entries[i].name, u.name) == 0 && entries[i].record.accountNbr == accountId)
         {
             found = 1;
             if (strcmp(entries[i].record.accountType, "fixed01") == 0 || strcmp(entries[i].record.accountType, "fixed02") == 0 || strcmp(entries[i].record.accountType, "fixed03") == 0)
@@ -457,7 +457,7 @@ void makeTransaction(struct User u)
     {
         struct User tmpUser;
         tmpUser.id = entries[i].record.userId; 
-        strcpy(tmpUser.username, entries[i].username);
+        strcpy(tmpUser.name, entries[i].name);
 
         // Save the record with the correct user info
         saveAccountToFile(pf, tmpUser, entries[i].record);
