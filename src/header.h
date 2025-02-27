@@ -1,3 +1,6 @@
+#ifndef HEADER_H_
+#define HEADER_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,10 +34,12 @@ struct User
 
 // authentication functions
 void loginMenu(char a[50], char pass[50]);
-void registerMenu(char a[50], char pass[50]);
+void registerMenu(struct User *u);
 const char *getPassword(struct User u);
 
 // system function
 void createNewAcc(struct User u);
 void mainMenu(struct User u);
 void checkAllAccounts(struct User u);
+
+#endif
