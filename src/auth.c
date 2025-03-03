@@ -45,7 +45,7 @@ const char *getPassword(struct User u)
         exit(1);
     }
 
-    while (fscanf(fp, " %d %s %s",id, userChecker.name, userChecker.password) != EOF)
+    while (fscanf(fp, " %d %s %s",&u.id, userChecker.name, userChecker.password) != EOF)
     {
         if (strcmp(userChecker.name, u.name) == 0)
         {
@@ -92,7 +92,7 @@ void registerMenu(struct User *u) {
     fclose(fp);
 
     if (userExists) {
-        printf("\n\t\t\t\tUsername already taken!\n");
+        printf("\n\t\t\t\t user already exists!\n");
         printf("\n\t\t\t\tPress any key to continue...");
         getchar(); // Consume newline
         getchar();
