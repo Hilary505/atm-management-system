@@ -103,6 +103,25 @@ invalid:
     }
 }
 
+int getUserId(const char *username) {
+  FILE *fp = fopen("./data/users.txt", "r");
+  if (!fp) {
+    perror("\n\t\tError opening file");
+    exit(1);
+  }
+
+  char id[10], name[50], pass[50];
+  while (fscanf(fp, "%s %s %s", id, name, pass) != EOF) {
+    if (strcmp(name, username) == 0) {
+      fclose(fp);
+      return atoi(id);
+    }
+  }
+
+  fclose(fp);
+  return -1;
+}
+
 
 void createNewAcc(struct User u)
 {
@@ -116,9 +135,6 @@ void createNewAcc(struct User u)
         printf("\nUnable to open file!\n");
         exit(1);
     }
-
- r.userId = u.id;
-
 noAccount:
     system("clear");
     printf("\t\t\t===== New record =====\n");
@@ -256,7 +272,8 @@ noAccount:
 
         break; 
     }
-
+    u.id = getUserId(u.name);
+     r.userId = u.id;
     saveAccountToFile(pf, u, r);
 
     fclose(pf);
@@ -368,7 +385,7 @@ void updateAccount(struct User u) {
     for (int i = 0; i < entryCount; i++) {
         // Create a temporary User struct with stored username and user ID from the record
         struct User tmpUser;
-        tmpUser.id = entries[i].record.userId; 
+        tmpUser.id = getUserId(entries[i].record.userId); 
         strcpy(tmpUser.name, entries[i].name);
 
         // Save the record with the correct user info
@@ -708,6 +725,7 @@ void transferAccount(struct User u)
             printf("\nTransferring ownership to %s\n", newOwner);
 
             strcpy(entries[i].name, newOwner);
+            entries[i].record.userId = getUserId(newOwner);
             break;
         }
     }
