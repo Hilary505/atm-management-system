@@ -1,12 +1,13 @@
 #include <termios.h>
 #include "header.h"
+#include <ctype.h>
 
 char *USERS = "./data/users.txt";
 int id[10];
 
 void initMenu(struct User *u);
 
-void loginMenu(char a[50], char pass[50])
+void loginMenu(char a[50], char pass[16])
 {
     struct termios oflags, nflags;
     system("clear");
@@ -24,7 +25,6 @@ void loginMenu(char a[50], char pass[50])
     }
     printf("\n\tEnter your password: ");
     scanf("%s", pass);
-    // restore terminal
     if (tcsetattr(fileno(stdin), TCSANOW, &oflags) != 0)
     {
         perror("tcsetattr");
@@ -54,38 +54,65 @@ const char *getPassword(struct User u)
     return "no user found";
 }
 
-void registerMenu(struct User *u) { 
+void registerMenu(struct User *u) {
     FILE *fp;
     struct User userChecker;
     int userExists = 0;
-    char name[50], password[50];
+    char name[50], password[16];
     int newId = 0;
-
     system("clear");
     printf("\n\t Bank Management System\n");
-    printf("\n\tEnter username: ");
-    scanf("%s", name);
+    while (getchar() != '\n');
+    while (1) {
+        printf("\n\tEnter username: ");
+        scanf(" %[^\n]", name);
+        
+        char *start = name;
+        while (isspace((unsigned char)*start)) start++;
+        char *end = name + strlen(name) - 1;
+        while (end > start && isspace((unsigned char)*end)) end--;
+        *(end + 1) = '\0';
+        if (strlen(start) == 0) {
+            printf("\n\tError: Username cannot be empty. Please try again.\n");
+            continue;
+        }
+         if (strlen(start) > 50) {
+            printf("\n\tUsername should not exceed 50 characters. Please try again.\n");
+            continue;
+        }
+        int valid = 1;
+        for (int i = 0; start[i] != '\0'; i++) {
+            if (!isalnum(start[i]) && start[i] != '_') {
+                valid = 0;
+                break;
+            }
+        }
+        if (!valid) {
+            printf("\n\tError: Username can only contain letters, numbers, and underscores. Please try again.\n");
+            continue;
+        }
+        strcpy(name, start);
+        break;
+    }
     if ((fp = fopen("./data/users.txt", "r")) == NULL) {
         printf("Error! opening file");
         exit(1);
     }
-    while (fscanf(fp, "%d %s %s",&userChecker.id, userChecker.name, userChecker.password) != EOF) {
+    while (fscanf(fp, "%d %s %s", &userChecker.id, userChecker.name, userChecker.password) != EOF) {
         if (strcmp(userChecker.name, name) == 0) {
             userExists = 1;
             break;
         }
-         if (userChecker.id >= newId) {
-                newId = userChecker.id + 1;
+        if (userChecker.id >= newId) {
+            newId = userChecker.id + 1;
         }
     }
     fclose(fp);
     if (userExists) {
-        printf("\n\t user already exists try another username!\n");
+        printf("\n\tError: User already exists. Please try another username.\n");
         printf("\n\tPress Enter to continue");
         while (getchar() != '\n');
-        getchar();
         initMenu(u);
-        return;
     }
     struct termios oflags, nflags;
     tcgetattr(fileno(stdin), &oflags);
@@ -96,8 +123,34 @@ void registerMenu(struct User *u) {
         perror("tcsetattr");
         exit(1);
     }
-    printf("\n\tEnter Password: ");
-    scanf("%s", password);
+    while (getchar() != '\n');
+    while (1) {
+        printf("\n\tEnter Password: ");
+        int i = 0;
+        char ch;
+        while (i <= 15 && (ch = getchar()) != '\n' && ch != EOF) {
+            password[i++] = ch;
+        }
+        password[i] = '\0';
+        if (ch != '\n' && ch != EOF) {
+        while (getchar() != '\n');
+    } 
+        char *start = password;
+        while (isspace((unsigned char)*start)) start++;
+        char *end = password + strlen(password) - 1;
+        while (end > start && isspace((unsigned char)*end)) end--;
+        *(end + 1) = '\0';
+        if (strlen(start) == 0) {
+            printf("\n\tError: Password cannot be empty. Please try again.\n");
+            continue;
+        }
+        if (strlen(start) < 10 || strlen(start) > 15) {
+            printf("\n\tEnter a strong password 10-15 characters . Please try again.\n");
+            continue;
+        }
+        strcpy(password, start); 
+        break;
+    }
     if (tcsetattr(fileno(stdin), TCSANOW, &oflags) != 0) {
         perror("tcsetattr");
         exit(1);
@@ -107,15 +160,13 @@ void registerMenu(struct User *u) {
         printf("Error opening file!\n");
         return;
     }
-    fprintf(fp, "%d %s %s \n",newId, name, password);
+    fprintf(fp, "%d %s %s \n", newId, name, password);
     fclose(fp);
-    printf("\n\tRegistration Successful!\n");
+    printf("\n\tRegistration Successful ✓✓✓\n");
     printf("\n\tPress Enter to login");
-     while (getchar() != '\n');
-    getchar();
+    while (getchar() != '\n');
     u->id = newId;
-    strcpy(u->name,name);
-    strcpy(u->password,password);
-
+    strcpy(u->name, name);
+    strcpy(u->password, password);
     initMenu(u);
 }

@@ -1,37 +1,18 @@
 #include "header.h"
+#include <ctype.h>
 
 const char *RECORDS = "./data/records.txt";
 
 int getAccountFromFile(FILE *ptr, char name[50], struct Record *r)
 {
-    return fscanf(ptr, "%d %d %s %d %d/%d/%d %s %d %lf %s",
-                  &r->id,
-		  &r->userId,
-		  name,
-                  &r->accountNbr,
-                  &r->deposit.month,
-                  &r->deposit.day,
-                  &r->deposit.year,
-                  r->country,
-                  &r->phone,
-                  &r->amount,
-                  r->accountType) != EOF;
+    return fscanf(ptr, "%d %d %s %lld %d/%d/%d %s %lld %lf %s",
+                  &r->id,&r->userId,name,&r->accountNbr,&r->deposit.month, &r->deposit.day, &r->deposit.year, r->country, &r->phone,&r->amount,r->accountType) != EOF;
 }
 
 void saveAccountToFile(FILE *ptr, struct User u, struct Record r)
 {
-    fprintf(ptr, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n\n",
-            r.id,
-	    r.userId,
-	    u.name,
-            r.accountNbr,
-            r.deposit.month,
-            r.deposit.day,
-            r.deposit.year,
-            r.country,
-            r.phone,
-            r.amount,
-            r.accountType);
+    fprintf(ptr, "%d %d %s %lld %d/%d/%d %s %lld %.2lf %s\n\n",
+         r.id, r.userId, u.name, r.accountNbr,r.deposit.month,r.deposit.day,r.deposit.year,r.country, r.phone,r.amount,r.accountType);
 }
 
 void stayOrReturn(int notGood, void f(struct User u), struct User u, const char *errorMessage)
@@ -120,6 +101,15 @@ int getUserId(const char *username) {
   return -1;
 }
 
+int isValidCountry(const char *country) {
+    for (int i = 0; country[i] != '\0'; i++) {
+        if (!isalpha(country[i])) {
+            return 0; 
+        }
+    }
+    return 1; 
+}
+
 void createNewAcc(struct User u)
 {
     struct Record r;
@@ -166,23 +156,23 @@ noAccount:
                 continue;
             }
         }
-        if (r.deposit.year < 1900 || r.deposit.year > 2025)
+        if (r.deposit.year < 1900 || r.deposit.year > 2029)
         {
-            printf("\nInvalid year! Please enter a year between 1900 and 2025.\n");
+            printf("\nInvalid year! Please enter a year between 1899 and 2030\n");
             continue;
         }
-
         break; 
     }
     while (1)
     {
-        printf("\nEnter the account number (up to 15 digits): ");
-        scanf("%d", &r.accountNbr);
-        if (r.accountNbr < 0 || r.accountNbr > 999999999999999)
+        printf("\nEnter the account number (4 - 15 digits): ");
+        scanf("%lld", &r.accountNbr);
+        if (r.accountNbr < 999 || r.accountNbr > 999999999999999)
         {
-            printf("\nInvalid account number! Please enter up to 15 digits.\n");
+            printf("\nInvalid account number! Please enter 3 - 15 digits.\n");
             continue;
         }
+        break;
         rewind(pf); 
         int accountExists = 0;
         while (getAccountFromFile(pf, userName, &cr))
@@ -200,16 +190,23 @@ noAccount:
         }
         break; 
     }
-    printf("\nEnter the country: ");
-    scanf("%s", r.country);
+    while (1) {
+        printf("\nEnter the country: ");
+        scanf("%s", r.country);
+        if (!isValidCountry(r.country)) {
+            printf("\nInvalid country name! Please enter only alphabetic characters.\n");
+            continue;
+        }
+        break;
+    }
     while (1)
     {
-        printf("\nEnter the phone number (up to 10 digits): ");
-        scanf("%d", &r.phone);
+        printf("\nEnter the phone number (8 - 10 digits): ");
+        scanf("%lld", &r.phone);
 
-        if (r.phone < 0 || r.phone > 9999999999) 
+        if (r.phone < 9999999 || r.phone > 9999999999) 
         {
-            printf("\nInvalid phone number! Please enter up to 10 digits.\n");
+            printf("\nInvalid phone number! Please enter 7 - 10 digits.\n");
             continue;
         }
         break; 
@@ -277,15 +274,8 @@ void checkAllAccounts(struct User u)
         if (strcmp(userName, u.name) == 0)
         {
             printf("_____________________\n");
-            printf("\nAccount number:%d\nDeposit Date:%d/%d/%d \ncountry:%s \nPhone number:%d \nAmount deposited: $%.2f \nType Of Account:%s\n",
-                   r.accountNbr,
-                   r.deposit.day,
-                   r.deposit.month,
-                   r.deposit.year,
-                   r.country,
-                   r.phone,
-                   r.amount,
-                   r.accountType);
+            printf("\nAccount number:%lld\nDeposit Date:%d/%d/%d \ncountry:%s \nPhone number:%lld \nAmount deposited: $%.2f \nType Of Account:%s\n",
+                   r.accountNbr,r.deposit.day,r.deposit.month,r.deposit.year,r.country,r.phone,  r.amount, r.accountType);
         }
     }
     fclose(pf);
@@ -323,7 +313,6 @@ void updateAccount(struct User u) {
             strcmp(entries[i].name, u.name) == 0) {
             found = 1;
             printf("\nAccount found!\n");
-            
             int option;
             printf("\n1. Update Country\n\n2. Update Phone Number\n\nSelect: ");
             scanf("%d", &option);
@@ -335,7 +324,7 @@ void updateAccount(struct User u) {
                     break;
                 case 2:
                     printf("\nEnter new phone number: ");
-                    scanf("%d", &entries[i].record.phone);
+                    scanf("%lld", &entries[i].record.phone);
                     break;
                 default:
                     printf("\nInvalid option!\n");
@@ -388,10 +377,10 @@ void checkAccount(struct User u)
         {
             found = 1;
             printf("\nAccount found!\n");
-            printf("Account number: %d\n", r.accountNbr);
+            printf("Account number: %lld\n", r.accountNbr);
             printf("Deposit Date: %d/%d/%d\n", r.deposit.month, r.deposit.day, r.deposit.year);
             printf("Country: %s\n", r.country);
-            printf("Phone number: %d\n", r.phone);
+            printf("Phone number: %lld\n", r.phone);
             printf("Amount deposited: $%.2f\n", r.amount);
             printf("Type of Account: %s\n", r.accountType);
             double monthlyInterest = 0.0;

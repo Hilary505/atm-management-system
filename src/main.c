@@ -69,9 +69,8 @@ void initMenu(struct User *u)
             }
             else
             {
-                printf("\nWrong password!! or User Name\n");
+                printf("\n\tWrong password!! or User Name, \n\tPress enter to try again: ");
                 while (getchar() != '\n');
-                getchar();
                 getchar();
                 initMenu(u);
             }
