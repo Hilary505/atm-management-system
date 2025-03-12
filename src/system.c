@@ -101,6 +101,15 @@ int getUserId(const char *username) {
   return -1;
 }
 
+int isValidNumber(const char *num, int minLen, int maxLen) {
+    int len = strlen(num);
+    if (len < minLen || len > maxLen) return 0;
+    for (int i = 0; i < len; i++) {
+        if (!isdigit(num[i])) return 0;
+    }
+    return 1;
+}
+
 int isValidCountry(const char *country) {
     for (int i = 0; country[i] != '\0'; i++) {
         if (!isalpha(country[i])) {
@@ -163,15 +172,16 @@ noAccount:
         }
         break; 
     }
+    char accountStr[20];
     while (1)
     {
-        printf("\nEnter the account number (4 - 15 digits): ");
-        scanf("%lld", &r.accountNbr);
-        if (r.accountNbr < 999 || r.accountNbr > 999999999999999)
-        {
-            printf("\nInvalid account number! Please enter 3 - 15 digits.\n");
+      printf("\nEnter the account number (0 - 9 digits): ");
+        scanf("%s", accountStr);
+        if (!isValidNumber(accountStr, 0, 9)) {
+            printf("\nInvalid account number! Please enter 0 - 9 digits.\n");
             continue;
         }
+        r.accountNbr = atoll(accountStr);
         break;
         rewind(pf); 
         int accountExists = 0;
@@ -199,27 +209,32 @@ noAccount:
         }
         break;
     }
+    char phoneStr[15];
     while (1)
     {
         printf("\nEnter the phone number (8 - 10 digits): ");
-        scanf("%lld", &r.phone);
-
-        if (r.phone < 9999999 || r.phone > 9999999999) 
-        {
-            printf("\nInvalid phone number! Please enter 7 - 10 digits.\n");
+        scanf("%s", phoneStr);
+        if (!isValidNumber(phoneStr, 8, 10)) {
+            printf("\nInvalid phone number! Please enter 8 - 10 digits.\n");
             continue;
         }
-        break; 
+        r.phone = atoll(phoneStr);
+        break;
     }
+    char amount[20];
     while (1)
     {
         printf("\nEnter amount to deposit: $");
-        scanf("%lf", &r.amount);
-
-        if (r.amount < 0)
-        {
-            printf("\nInvalid amount! Please enter a positive value.\n");
+        scanf("%s", amount);
+          if (!isValidNumber(amount, 0,1000000)) {
+            printf("\nInvalid amount! Please enter minimum  amount $5 and maximum $1000000\n");
             continue;
+        }
+        r.amount = atoll(amount);
+        if (r.amount < 5)
+        {
+        printf("\nInvalid amount!\n");
+        continue;
         }
         break; 
     }
@@ -274,7 +289,7 @@ void checkAllAccounts(struct User u)
         if (strcmp(userName, u.name) == 0)
         {
             printf("_____________________\n");
-            printf("\nAccount number:%lld\nDeposit Date:%d/%d/%d \ncountry:%s \nPhone number:%lld \nAmount deposited: $%.2f \nType Of Account:%s\n",
+            printf("\nAccountNbr:%lld\nDeposit Date:%d/%d/%d \ncountry:%s \nPhone number:%lld \nAmount deposited: $%.2f \nType Of Account:%s\n",
                    r.accountNbr,r.deposit.day,r.deposit.month,r.deposit.year,r.country,r.phone,  r.amount, r.accountType);
         }
     }
@@ -298,7 +313,7 @@ void updateAccount(struct User u) {
     int found = 0;
     system("clear");
     printf("\n\t\t===== Update Account =====\n");
-    printf("\nEnter the account number to update: ");
+    printf("\nEnter the accountNbr to update: ");
     scanf("%d", &accountId);
     char currentUser[100];
     struct Record r;
@@ -334,7 +349,7 @@ void updateAccount(struct User u) {
         }
     }
     if (!found) {
-        stayOrReturn(0, mainMenu, u, "\nAccount number not found for this user!\n");
+        stayOrReturn(0, mainMenu, u, "\nAccountNbr not found for this user!\n");
         return;
     }
     pf = fopen(RECORDS, "w");
@@ -369,7 +384,7 @@ void checkAccount(struct User u)
     int found = 0;
     system("clear");
     printf("\t\t===== Check Account Details =====\n");
-    printf("\nEnter the accountId you want to check: ");
+    printf("\nEnter the accountNbr you want to check: ");
     scanf("%d", &accountId);
     while (getAccountFromFile(pf, userName, &r))
     {
@@ -422,7 +437,7 @@ void checkAccount(struct User u)
     if (!found)
     {
         fclose(pf);
-        stayOrReturn(0, mainMenu, u,"\nAccountId not found for this user!\n"); 
+        stayOrReturn(0, mainMenu, u,"\nAccountNbr not found for this user!\n"); 
         return;
     }
     fclose(pf);
@@ -486,7 +501,6 @@ void makeTransaction(struct User u)
             {
                 printf("\nEnter amount to withdraw: $");
                 scanf("%lf", &transactionAmount);
-
                 if (entries[i].record.amount - transactionAmount < 0.0)
                 {
                     stayOrReturn(0, mainMenu, u,"✖ oops, Insufficient funds! You cannot withdraw more than the available balance.\n");
@@ -624,7 +638,6 @@ void transferAccount(struct User u)
             found = 1;
             printf("\nAccount found!\n");
             printf("\nTransferring ownership to %s\n", newOwner);
-
             strcpy(entries[i].name, newOwner);
             entries[i].record.userId = getUserId(newOwner);
             break;
