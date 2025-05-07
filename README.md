@@ -1,19 +1,15 @@
 # atm-management-system
 
 ## Objective
-
 This project implements an ATM management system using C. The application  provides basic ATM features such as user registration, account management and transaction handling.
 
 ## Requirements
-
  - C Compiler (gcc or clang)
  - Make tool (for compiling)
 
 
 ## Features
-
 The application provides the following features:
-
 - **Login/Register:** Allow users to login or register with unique credentials.
 - **Create a new account:** Users can create a new account with their personal details.
 - **Check the details of existing accounts:** Users can view details of specific accounts.
@@ -24,7 +20,6 @@ The application provides the following features:
 - **Transfer ownership:** Users can transfer an account to another user.
 
 ## File System
-
 The project has the following file structure:The project has the following file structure:
 
 ├── data 
@@ -38,12 +33,10 @@ The project has the following file structure:The project has the following file 
 ├── Makefile
 
 ### Makefile
-
 The **Makefile** is used to compile the project and handle the build process.
 
 
 ### Source Code
-
 - **`auth.c`**: Contains functions related to user authentication and registration.
 - **`system.c`**: Handles the business logic for account operations (view, update, delete, etc.).
 - **`header.h`**: Contains the function prototypes and necessary includes for the project.
@@ -51,7 +44,6 @@ The **Makefile** is used to compile the project and handle the build process.
 
 
 ## How to Run
-
 1. Clone the repository to your local machine.
 
 ```bash
