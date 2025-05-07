@@ -224,16 +224,13 @@ noAccount:
     char amount[20];
     while (1)
     {
-        printf("\nEnter amount to deposit: $");
-        scanf("%s", amount);
-          if (!isValidNumber(amount, 0,1000000)) {
-            printf("\nInvalid amount! Please enter minimum  amount $5 and maximum $1000000\n");
-            continue;
-        }
-        r.amount = atoll(amount);
-        if (r.amount < 5)
+    printf("\nEnter amount to deposit: $");
+    scanf("%s", amount);
+    char *endptr;
+    r.amount = strtod(amount, &endptr);
+    if (*endptr != '\0' || r.amount < 5.0 || r.amount > 1000000.0)
         {
-        printf("\nInvalid amount!\n");
+         printf("\nInvalid amount! Please enter minimum amount $5.00 and maximum $1000000.00\n");
         continue;
         }
         break; 
